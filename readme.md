@@ -99,3 +99,37 @@ SQL 삽입(Injection), 운영체제 명령어 삽입(Command Injection), 신뢰�
         - 변경주기
         - 최근 사용 패스워드 히스토리 관리
         - 최소 사용기간 
+
+## Secure coding 필요성 숙지.
+### 취약점 DB 확인
+    - CWE : 보안 약점 (Common Weakness Enumeration) / 문제의 원인의 가능성이 있음..
+    - CVE : 보안 취약점 (Common Vulnerabilities and Exposures) / 문제로 나타난 것들..
+    - SANS TOP 25 
+    - OWASP TOP 10 
+### Secure coding 가이드
+    - CERT
+    - 개발보안가이드
+### 방법론
+    - MS-SDL
+    - 7 touch point
+    - CLASP
+
+
+## 주요 취약점
+### SQL injection 방어
+#### URL 또는 SQL에 사용되는 의미를 가진 특수 문자를 처리해야함.
+    SQL : ', #, ;, -
+    URL : ?, &, =
+    1) 이스케이프 문자를 사용하여 처리
+    2) 입력값 검증
+
+###CSRF(크로스사이트 요청위조)
+    서버로 전달된 요청을 요청 절차와 주체에 대한 검증을 수행하지 않고 요청을 처리했을 때 발생
+
+### BoF (Buffuer over Flow)
+### 경로 조작, 경로 추적
+    특정 디렉터리에 존재하는 파일을 내려주는 서비스 ⇒ 파일 다운로드
+    .../download.jsp?filename=abc.gif
+    ~~~~~~~~~~~~
+    new File("/data/upload/" + filename);
+    .../download.jsp?filename=../../../../../../etc/passwd ⇐ 경로조작 → 접근할 수 없는 디렉터리와 파일에 접근이 가능
