@@ -133,3 +133,37 @@ SQL 삽입(Injection), 운영체제 명령어 삽입(Command Injection), 신뢰�
     ~~~~~~~~~~~~
     new File("/data/upload/" + filename);
     .../download.jsp?filename=../../../../../../etc/passwd ⇐ 경로조작 → 접근할 수 없는 디렉터리와 파일에 접근이 가능
+
+
+# 20190724
+## 실습
+### injection
+    1) id에 `admin'#` >>  server에서 `where id = 'admin'#' pw = 'xxx'`
+                        뒤 구문이 주석처리됨.
+    
+### DVWA
+    취약점을 모아놓은 패키지
+    (Welcome to Damn Vulnerable Web App)
+
+### 프록시사용
+    paros)
+        요청 catch : trap 
+    burp suite)
+        요청 catch : intercept
+
+## HTTP와 웹 구조 2번책 131페이지
+
+## HTTP 구조적 특징
+    1) Stateless = 커넥션리스, 연결유지x
+    2) 요청/응답 구조
+        -> 알파넷 시절, 정적문서 요청에 대한 프로토콜이 HTTP
+        다수의 연결을 유지하면 이용제한이 걸림...
+        요청에 대한 정적 문서 전달 후 연결 종료.
+
+## 동적 페이지의 등장
+    1) 동적 처리를 위한 어플리케이션 서버... PHP, JSP, ASP 등
+    2) 하드웨어의 발달로 처리기능 향상됨
+        - 비즈니스 처리 Servlet
+    3) 가상화기술.. 컨테이너... docker 등장
+    4) 모듈화 프레임웍... Micro Service Architecture.
+
