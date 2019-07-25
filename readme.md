@@ -167,3 +167,93 @@ SQL 삽입(Injection), 운영체제 명령어 삽입(Command Injection), 신뢰�
     3) 가상화기술.. 컨테이너... docker 등장
     4) 모듈화 프레임웍... Micro Service Architecture.
 
+# 20190725
+## 인증과 인가
+### 인증 (Authentication)
+    인증은, 서버의 자원을 사용하려는 주체의 신원을 식별(Identification)하는 작업.
+
+    인증방식
+    Type1 : 지식기반 ; 패스워드, 보안질문, PIN ... 등
+    Type2 : 소유기반 ; 메모리카드, 스마트카드, USB ... 등
+    Type3 : 바이오기반 ; 지문, 음성, 정맥, 홍채, 서명 ... 등
+
+    두가지 복합 = 2 factor 인증
+    두가지 이상 = multi factor 인증 = 다중 인증
+
+### 인가 (Authorization)
+    자원접근 권한을 확인 = 접근통제 
+
+    접근통제 기술
+    접근제어목록(ACL:Access Control List) 
+    https://ko.wikipedia.org/wiki/%EC%A0%91%EA%B7%BC_%EC%A0%9C%EC%96%B4_%EB%AA%A9%EB%A1%9D
+        : 사용자 또는 자원 중심의 접근통제 목록을 작성하여 접근 제어시 목록을 비교하여 접근통제.
+    접근통제표(ACM:Access Control Matrix) 
+        : 자원 중심의 접근통제 표를 작성하여 접근 제어시 표와 비교하여 접근 통제.
+    강제적 접근통제(MAC:Mandotory Access Control)
+        : 사용자와 자원에 적절한 보안등급(레이블)을 부여하여 접근 제어시 등급을 비교하여 접근 통제
+    역할기반 접근통제(RBAC:Role Base Access Control)
+        : 사용자에게 역할(Role)을 부여하고 각 역할별로 권한을 부여 접근 통제
+
+### 웹 인증 방식
+    세션사용 여부로 나뉨
+    1) 세션을 사용하지 않는 HTTP 인증
+    : 요청시마다 인증정보를 가지고 가야함 = 노출빈도 높음 = 유출 가능성 높음
+        -Bassic Authentication https://flylib.com/books/en/1.2.1.125/1/
+        -HTTP Digest Authentication
+        -HTTP NTLM Authentication
+        -Anonymous Authentication
+    
+    2) 세션을 사용하는 인증
+        -Form Based Authentication
+
+## 보안취약접 제거를 위한 코딩 기법 p189
+### 입력값에 대한 확인 절차가 생략되는 경우 다양한 인젝션(삽입) 취약점이 발생할 수 있다.
+    - DB 데이터를 조작하는 SQL문에 검증되지 않은 외부 입력값을 사용하는 경우
+    - 내부에서 실행되는 명령어나 명령어의 인자(argument)로 검증되지 않은 외부 입력값 사용
+    - LDAP 조회를 위한 필터 조립에 검증되지 않은 외부 입력값사용
+    - Xpath 쿼리 작성에 검증되지 않은 외부 입력값 사용
+    - XQuery 쿼리 작성에 검증되지 않은 외부 입력값 사용
+    - SOAP 서비스 요청 메시지 작성에 검증되지 않은 외부 입력값 사용
+
+### 검증 절차
+    - 규범화 (Canonicalization)
+        : 데이터 손실 없이 입력 데이터를 가장 간단하면서 대등한 형태로 축소하는 과정
+    - 정규화 (Normalization)
+        : 데이터 손실은 있지만 알려진 가장 간단한 형태로 변환하는 과정
+    - 새니타이즈 (Sanitization)
+        : 데이터를 받은 서브시스템의 요구사항에 맞게 데이터를 가공하는 과정
+    - 검증 (Validation)
+        : 입력 데이터가 프로그램의 정당한 프로그램 입력 영역 안에 있는지 확인하는 과정
+
+### 취약점 1) SQL 삽입
+    가능한 피해 :
+    - DB 정보 열람 및 추가, 수정 삭제
+    - 프로시저를 통해 운영체제 명령어 수행
+    - 웹 애플리케이션을 조정해 다른 시스템 공격
+    - 외부 프로그램 사용
+    - 불법 로그인
+
+예시) search.jsp
+
+`String ptext = request.getParameter("text");`
+
+`String query = "select * from data where keyword = '" + ptext + "'";`
+
+`Statement stmt = connection.createStatement();`
+
+`stmt.executeQuery(query);`
+
+    case1) 항상 참이 되는 입력 => 모든 내용이 반환됨 = 권한 밖의 데이터에 대해 접근이 가능함
+
+    정상적인 요청 : search.jsp?text=abcd
+        query = select * from data where keyword = 'abcd'
+    비정상적인 요청 : search.jsp?text=abcd' or 'a'='a
+        quety = select * fromd ata where keyword = 'abcd' or 'a' = 'a'
+
+
+    case2) 오류를 유발하는 입력
+    search.jsp?text=abcd'
+        query = select * from data where keyword = 'abcd''
+    => 홑따움표의 개수가 일치하지 않아서 오류가 발생 = 오류 메시지에 대한 처리가 불완전하여 시스템 내부 정보가 사용자 화면에 출력될 수 있음
+
+    
