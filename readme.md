@@ -233,15 +233,13 @@ SQL 삽입(Injection), 운영체제 명령어 삽입(Command Injection), 신뢰�
     - 외부 프로그램 사용
     - 불법 로그인
 
+```java
 예시) search.jsp
-
-`String ptext = request.getParameter("text");`
-
-`String query = "select * from data where keyword = '" + ptext + "'";`
-
-`Statement stmt = connection.createStatement();`
-
-`stmt.executeQuery(query);`
+String ptext = request.getParameter("text");
+String query = "select * from data where keyword = '" + ptext + "'";
+Statement stmt = connection.createStatement();
+stmt.executeQuery(query);
+```
 
     case1) 항상 참이 되는 입력 => 모든 내용이 반환됨 = 권한 밖의 데이터에 대해 접근이 가능함
 
@@ -250,10 +248,24 @@ SQL 삽입(Injection), 운영체제 명령어 삽입(Command Injection), 신뢰�
     비정상적인 요청 : search.jsp?text=abcd' or 'a'='a
         quety = select * fromd ata where keyword = 'abcd' or 'a' = 'a'
 
-
     case2) 오류를 유발하는 입력
     search.jsp?text=abcd'
         query = select * from data where keyword = 'abcd''
     => 홑따움표의 개수가 일치하지 않아서 오류가 발생 = 오류 메시지에 대한 처리가 불완전하여 시스템 내부 정보가 사용자 화면에 출력될 수 있음
 
     
+# 20190726
+
+    case3) Stored Procedure를 호출하는 입력 => DB 서버 제어권 탈취에 사용
+    요청 : search.jsp?text=abcd'; exec xp_cmdshell 'net user hack hack /add'; --
+
+    query = select * from data where keyword = 'abcd'; exec xp_cmdshell 'net user hack hack /add'; --'
+
+    case4) UNION 구문을 이용한 SQL Injection => 공격자가 작성한 쿼리 구문을 통해 (내부 테이블의) 데이터가 유출 
+
+    UNION 구문 참조 : https://zetawiki.com/wiki/SQL_UNION,_UNION_ALL_%EC%97%B0%EC%82%B0%EC%9E%90
+
+    UNION 구문을 사용하기 위한 전제 조건
+    컬럼의 개수와 데이터 타입이 동일해야 한다. => 정상 쿼리(우편번호 조회 쿼리) 실행을 통해서 반환되는 컬럼의 개수와 각 컬럼의 데이터 타입을 확인해야 한다.
+    공격자가 원하는 정보를 포함하고 있는 테이블과 컬럼의 이름을 알고 있어야 한다. => 외부에서 (또는 검색을 통해서) 확인 가능한 DBMS의 시스템 테이블을 우선적으로 사용해야 한다.
+
